@@ -26,3 +26,13 @@ try {
   unlinkSync(temp);
 }
 console.log(`Restored UMC source and art from ${manifest.parts.length} verified parts.`);
+if (existsSync('update-manifest.json')) {
+  const update = JSON.parse(readFileSync('update-manifest.json', 'utf8'));
+  if (update.file !== 'update.tar.gz') throw Error('Invalid update filename');
+  const data = readFileSync(update.file);
+  if (data.length !== update.bytes || createHash('sha256').update(data).digest('hex') !== update.sha256) {
+    throw Error('Update integrity check failed');
+  }
+  execFileSync('tar', ['-xzf', update.file], {stdio:'inherit'});
+  console.log('Applied verified cloud audio and gameplay update.');
+}

@@ -1,21 +1,22 @@
 # GitHub 배포 패키지
 
-브라우저 업로드를 위해 게임 소스, 도트 시트, 1,800개 프레임 PNG, 테스트와 제작 문서를 source.partXX로 분할했습니다. 각 파일은 SHA-256으로 검증됩니다. 원본 구조 복원: `node restore-source.mjs`. 그다음 `npm ci` 및 `npm test`를 실행합니다. Render 빌드 명령: `node restore-source.mjs && npm ci --omit=dev`. 시작 명령: `npm start`. 복원은 dist/server/test/docs/asset-sources 폴더를 갱신하므로 로컬 수정이 있다면 먼저 커밋하세요.
-
+소스와 이미지 원본은 source.partXX, 최신 오디오·게임 개선은 update.tar.gz에 담겨 있습니다. `node restore-source.mjs`로 SHA-256 검증 후 모두 복원합니다. Render 빌드: `node restore-source.mjs && npm ci --omit=dev`, 시작: `npm start`. 복원 시 dist/server/test/docs/asset-sources를 갱신하므로 로컬 수정은 먼저 커밋하세요.
 # UMC · 마법사의 귀환
 
-독창적인 2.5D 도트 마법사 대결 게임 개발판. `umc-arena.code-workspace`를 Visual Studio Code에서 열면 됩니다.
+독창적인 2.5D 도트 마법사 대결 게임 개발판. [온라인 플레이](https://umc-arena.onrender.com/) · [GitHub](https://github.com/Koninio/umc-arena). `umc-arena.code-workspace`를 Visual Studio Code에서 열면 됩니다.
+
+친구와 대결하려면 둘 다 온라인 주소를 열고, 한 명이 **친구와 대결 → 친구 초대방 만들기**를 누릅니다. 다른 한 명이 6자리 코드로 입장하면 대전이 시작됩니다. **매칭하기**는 접속 중인 다른 대기자를 찾으며, 혼자서는 **훈련장**에서 AI와 대결할 수 있습니다.
 
 ## 현재 상태
 
 - 플레이 가능한 로비·AI 훈련장, 5개 계보, 기본 공격+25개 스킬, 계보별 10개 연계.
 - 50×50m 전장, 8종 바이옴 장식, 안개 시야, 화면 방향 알림, 추적·가속 수축 자기장.
 - 60Hz 서버 판정, 초당20회 상태 전송, 30Hz 입력, 클라이언트 시각 보간, 친구 코드·매칭 대기열.
-- Generated image sheets: 25 skill sheets×60frames +5 character sheets×60frames =1,800 individual PNGs. Each sheet was generated once by built-in ImageGen then cropped/padded/repacked; these are not1,800 independent image-generation calls.
-- 캐릭터 한 시트의60프레임은 대기·걷기·시전·대시·점프 각각12프레임으로 구성됩니다. 방향은 좌우 반전이며8방향 전용 원화는 아닙니다.
+- 생성 이미지 시트: 스킬 25장 × 60프레임 + 캐릭터 5장 × 60프레임 = 개별 PNG 1,800장. 생성된 시트를 잘라 정렬한 방식이며 1,800장을 각각 독립적으로 생성한 것은 아닙니다.
+- 캐릭터 한 시트의 60프레임은 대기·걷기·시전·대시·점프 각각 12프레임으로 구성됩니다. 방향은 좌우 반전이며 8방향 전용 원화는 아닙니다.
 - AI 원화의 위치·크기 흔들림, 일부 잔광 잘림·배경 입자와 반복 프레임이 남아 있습니다. 물리 판정은 원화가 아닌 서버의 미터 단위 충돌체로 처리합니다.
-- **Agent Audio 실제 음원 생성은 미완료이며 현재 무음입니다.** 클라우드 실행 환경과 사용자 모델 약관 검토가 필요합니다. `docs/AUDIO-CLOUD.md` 참고.
-- 클라우드 게임 서버 배포와 외부2인 접속 테스트는 별도 확인해야 합니다. 정적 사이트 게시만으로 실시간 서버가 가동되는 것은 아닙니다.
+- Agent Audio를 Google Colab Linux CPU에서 실행해 원본 20개를 생성하고, 같은 클라우드에서 128개 OGG로 편집했습니다. 로비·전투 BGM, 이동·대시·점멸·패링, 25개 스킬의 충전·발사·이동·피격음을 연결했습니다. 파일·무음·진폭 검사는 통과했으며 별도 청취 검수는 하지 않았습니다. 재현 절차는 `docs/AUDIO-CLOUD.md`에 있습니다.
+- Render Free Singapore 배포 및 실제 외부 WebSocket 2인 접속·이동·스킬 입력·연결 종료를 검증했습니다. 2026-10-17 측정 RTT 약 122ms, Chrome 2개 창에서도 친구방 입장과 대전을 확인했습니다.
 
 ## 조작
 
@@ -32,6 +33,8 @@ npm ci
 npm test
 npm run check
 npm run preview
+# 배포된 클라우드 서버에 클라이언트로만 접속하여 검사
+node test/cloud-smoke.mjs https://umc-arena.onrender.com
 ```
 
 `preview`는127.0.0.1:4173 정적 미리보기만 제공합니다. 온라인 서버를 사용자PC에서 공개하지 않습니다. `npm test`의 통신 테스트는 잠깐 열었다 닫는 loopback 격리 서버입니다.
@@ -43,6 +46,8 @@ npm run preview
 Render Free는15분간 수신 트래픽이 없으면 잠들며 재기동에 약1분이 걸릴 수 있습니다. 월750시간·대역폭·빌드 한도가 있고 무료 인스턴스는 재시작될 수 있습니다. 요금제·결제수단·지출 상한을 확인해야 무료 범위를 넘는 비용을 막을 수 있습니다. 임의 유료 전환은 하지 않습니다. [공식문서](https://render.com/docs/free)
 
 방과 대전은 메모리에만 보관합니다. 서버 재기동 시 대전은 복구되지 않습니다. 랭크·로그인·영구기록은 구현하지 않았습니다. 대회급 지연 보상·재접속 복구·실사용 부하 검증은 아직 하지 않았습니다.
+
+현재는 친구와 규칙을 시험할 수 있는 개발판입니다. 다섯 계보는 투사체·부채꼴·곡선·지정 지점 폭발·관통의 다섯 궤적 패턴을 공유하며, 상태 효과·수치·아트·사운드로 차이를 줍니다. 장기 플레이 밸런스와 애니메이션 일관성은 추가 다듬기가 필요합니다.
 
 ## 산출물
 
