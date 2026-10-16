@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: umc-arena
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: node restore-source.mjs && npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+

@@ -1,0 +1,19 @@
+{
+  "name": "umc-arena",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check dist/game.js && node --check dist/engine.js && node --check server/index.mjs",
+    "preview": "node server/preview.mjs",
+    "restore": "node restore-source.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}
